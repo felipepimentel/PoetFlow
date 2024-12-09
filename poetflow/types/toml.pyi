@@ -1,0 +1,16 @@
+"""Type stubs for TOML handling."""
+from typing import Any, Dict, Optional, TypeVar, Union, overload
+
+T = TypeVar("T")
+
+class TOMLDocument(Dict[str, Any]):
+    @overload
+    def get(self, key: str) -> Any: ...
+    @overload
+    def get(self, key: str, default: None) -> Optional[Any]: ...
+    @overload
+    def get(self, key: str, default: T) -> Union[Any, T]: ...
+
+
+def parse(string: str) -> TOMLDocument: ...
+def dumps(data: Dict[str, Any] | TOMLDocument, sort_keys: bool = False) -> str: ... 

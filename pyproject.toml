@@ -1,0 +1,59 @@
+[tool.poetry]
+name = "poetflow"
+version = "0.1.0"
+description = "A Poetry plugin for managing Python monorepos"
+authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/felipepimentel/poetflow"
+keywords = ["packaging", "poetry", "monorepo", "lockfile", "virtualenv"]
+packages = [{ include = "poetflow" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+poetry = "^1.7.0"
+click = "^8.1.7"
+tomlkit = "^0.13.2"
+packaging = "^24.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+mypy = "^1.8.0"
+ruff = "^0.8.2"
+pytest-cov = "^6.0.0"
+pytest-mock = "^3.12.0"
+
+[tool.poetry.plugins."poetry.application.plugin"]
+poetflow = "poetflow.plugin:Monoranger"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+mypy_path = "poetflow/types"
+
+[tool.ruff]
+select = ["E", "F", "B", "I"]
+line-length = 100
+target-version = "py312"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=poetflow --cov-report=term-missing"

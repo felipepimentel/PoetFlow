@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Tests",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "-v",
+                "--cov=poetflow",
+                "--cov-report=term-missing"
+            ],
+            "justMyCode": false
+        }
+    ]
+} 
