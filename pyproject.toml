@@ -47,7 +47,21 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 ignore_missing_imports = true
-mypy_path = "poetflow/types"
+explicit_package_bases = true
+namespace_packages = true
+
+[[tool.mypy.overrides]]
+module = "tomlkit.*"
+ignore_missing_imports = true
+follow_imports = "skip"
+
+[[tool.mypy.overrides]]
+module = "poetry.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "cleo.*"
+ignore_missing_imports = true
 
 [tool.ruff]
 select = ["E", "F", "B", "I"]
