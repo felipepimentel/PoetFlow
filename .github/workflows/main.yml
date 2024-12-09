@@ -1,5 +1,3 @@
-# Inspired by https://github.com/python-poetry/poetry-plugin-export/blob/main/.github/workflows/main.yml
-
 name: CI
 
 on:
@@ -51,7 +49,9 @@ jobs:
       run: timeout 10s poetry run pip --version || rm -rf .venv
         
     - name: Install dependencies
-      run: poetry install
+      run: |
+        poetry install
+        poetry lock  # Ensure lockfile is consistent
       
     - name: Run tests
       run: poetry run pytest --cov=poetflow --cov-report=xml
