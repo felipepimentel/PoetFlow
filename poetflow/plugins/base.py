@@ -6,11 +6,11 @@ This module provides the base plugin class for PoetFlow.
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
-from cleo.events.console_command_event import ConsoleCommandEvent
 from cleo.events.console_terminate_event import ConsoleTerminateEvent
 
 if TYPE_CHECKING:
-    from poetflow.types import MonorangerConfig
+    from poetflow.types.config import MonorangerConfig
+    from tests.types import MockEvent
 
 
 class Plugin(ABC):
@@ -22,14 +22,14 @@ class Plugin(ABC):
         Args:
             config: Plugin configuration
         """
-        self.config: "MonorangerConfig" = config
+        self.config = config
 
     @abstractmethod
-    def execute(self, event: ConsoleCommandEvent) -> None:
+    def execute(self, event: "MockEvent") -> None:
         """Execute the plugin
 
         Args:
-            event: The command event
+            event: Command event
         """
         pass
 

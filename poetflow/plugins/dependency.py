@@ -7,8 +7,8 @@ for monorepo support.
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from poetry.config.config import Config  # type: ignore
 from poetry.console.commands.add import AddCommand  # type: ignore
@@ -21,7 +21,8 @@ from tomlkit.toml_document import TOMLDocument
 if TYPE_CHECKING:
     from cleo.events.console_command_event import ConsoleCommandEvent
     from cleo.events.console_terminate_event import ConsoleTerminateEvent
-    from poetflow.types.config import MonorangerConfig  # Update import path
+
+    from poetflow.types.config import MonorangerConfig
 
 
 class DummyInstaller(Installer):
@@ -130,9 +131,7 @@ class MonorepoAdderRemover:
             poetry.pyproject_path.parent / self.plugin_conf.monorepo_root
         ).resolve()
         monorepo_root_poetry = Factory().create_poetry(
-            cwd=monorepo_root,
-            io=io,
-            disable_cache=poetry.disable_cache
+            cwd=monorepo_root, io=io, disable_cache=poetry.disable_cache
         )
 
         installer = Installer(

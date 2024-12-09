@@ -1,7 +1,8 @@
 """Types for versioning and changelog functionality."""
+
+import re
 from dataclasses import dataclass
 from typing import Optional
-import re
 
 from ..core.exceptions import PackageError
 
@@ -9,6 +10,7 @@ from ..core.exceptions import PackageError
 @dataclass
 class Version:
     """Represents a semantic version."""
+
     major: int
     minor: int
     patch: int
@@ -19,11 +21,7 @@ class Version:
         match = re.match(r"^(\d+)\.(\d+)\.(\d+)$", version_str)
         if not match:
             raise PackageError(f"Invalid version format: {version_str}")
-        return cls(
-            major=int(match.group(1)),
-            minor=int(match.group(2)),
-            patch=int(match.group(3))
-        )
+        return cls(major=int(match.group(1)), minor=int(match.group(2)), patch=int(match.group(3)))
 
     def __str__(self) -> str:
         """Convert version to string."""
@@ -44,6 +42,7 @@ class Version:
 @dataclass
 class CommitInfo:
     """Information about a commit."""
+
     type: str
     scope: Optional[str]
     message: str
@@ -52,35 +51,27 @@ class CommitInfo:
     @classmethod
     def parse(cls, commit_message: str) -> "CommitInfo":
         """Parse a conventional commit message.
-        
+
         Format: type(scope): message
         Example: feat(core): add new feature
-        
+
         Args:
             commit_message: The commit message to parse
-            
+
         Returns:
             CommitInfo instance
         """
         # Check for breaking change marker
         breaking = "!" in commit_message
         commit_message = commit_message.replace("!", "")
-        
+
         # Parse conventional commit format
         pattern = r"^(\w+)(?:\(([^)]+)\))?: (.+)$"
         match = re.match(pattern, commit_message)
-        
+
         if not match:
-            return cls(
-                type="other",
-                scope=None,
-                message=commit_message,
-                breaking=breaking
-            )
-            
+            return cls(type="other", scope=None, message=commit_message, breaking=breaking)
+
         return cls(
-            type=match.group(1),
-            scope=match.group(2),
-            message=match.group(3),
-            breaking=breaking
-        ) 
+            type=match.group(1), scope=match.group(2), message=match.group(3), breaking=breaking
+        )

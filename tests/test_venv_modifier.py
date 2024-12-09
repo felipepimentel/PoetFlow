@@ -9,8 +9,8 @@ from poetry.console.commands.installer_command import InstallerCommand  # type: 
 from poetry.installation.installer import Installer  # type: ignore
 from poetry.poetry import Poetry  # type: ignore
 
-from poetflow.config import MonorangerConfig
 from poetflow.plugins.venv import VenvModifier
+from poetflow.types.config import MonorangerConfig
 from tests.types import Command, EventGenerator
 
 

@@ -1,13 +1,8 @@
-"""Copyright (C) 2024 felipepimentel plc
-
-This module defines the LockModifier class, which modifies the behavior of certain Poetry commands
-(`lock`, `install`, `update`) to support monorepo setups. It ensures these commands behave as if they
-were run from the monorepo root directory, maintaining a shared lockfile.
-"""
+"""LockModifier plugin for Poetry."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 from poetry.config.config import Config
 from poetry.console.commands.install import InstallCommand
@@ -19,28 +14,23 @@ from poetry.installation.installer import Installer
 if TYPE_CHECKING:
     from cleo.events.console_command_event import ConsoleCommandEvent
 
-    from poetflow.config import MonorangerConfig
+    from poetflow.types.config import MonorangerConfig
+    from tests.types import MockEvent
+
+    EventType = Union[ConsoleCommandEvent, MockEvent]
 
 
 class LockModifier:
-    """Modifies Poetry commands (`lock`, `install`, `update`) for monorepo support.
+    """Modifies Poetry's lock command behavior."""
 
-    Ensures these commands behave as if they were run from the monorepo root directory
-    even when run from a subdirectory, thus maintaining a shared lockfile.
-    """
+    def __init__(self, config: MonorangerConfig) -> None:
+        self.plugin_conf = config
 
-    def __init__(self, plugin_conf: MonorangerConfig):
-        self.plugin_conf = plugin_conf
-
-    def execute(self, event: ConsoleCommandEvent):
-        """Modifies the command to run from the monorepo root.
-
-        Ensures the command is one of `LockCommand`, `InstallCommand`, or `UpdateCommand`.
-        Sets up the necessary Poetry instance and installer for the monorepo root so that
-        the command behaves as if it was executed from within the root directory.
+    def execute(self, event: "EventType") -> None:
+        """Execute the plugin.
 
         Args:
-            event (ConsoleCommandEvent): The triggering event.
+            event: Command event
         """
         command = event.command
         assert isinstance(command, (LockCommand, InstallCommand, UpdateCommand)), (
@@ -50,7 +40,7 @@ class LockModifier:
         io = event.io
         io.write_line("<info>Running command from monorepo root directory</info>")
 
-        # Force reload global config in order to undo changes that happened due to subproject's poetry.toml configs
+        # Force reload global config
         _ = Config.create(reload=True)
         monorepo_root = (
             command.poetry.pyproject_path.parent / self.plugin_conf.monorepo_root

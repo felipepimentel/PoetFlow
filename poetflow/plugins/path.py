@@ -8,18 +8,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from poetry.console.commands.build import BuildCommand
-from poetry.core.constraints.version import Version
-from poetry.core.packages.dependency import Dependency
-from poetry.core.packages.dependency_group import MAIN_GROUP
-from poetry.core.packages.directory_dependency import DirectoryDependency
-from poetry.core.pyproject.toml import PyProjectTOML
+from poetry.console.commands.build import BuildCommand  # type: ignore
+from poetry.core.constraints.version import Version  # type: ignore
+from poetry.core.packages.dependency import Dependency  # type: ignore
+from poetry.core.packages.dependency_group import MAIN_GROUP  # type: ignore
+from poetry.core.packages.directory_dependency import DirectoryDependency  # type: ignore
+from poetry.core.pyproject.toml import PyProjectTOML  # type: ignore
 
 if TYPE_CHECKING:
     from cleo.events.console_command_event import ConsoleCommandEvent
     from poetry.poetry import Poetry
 
-    from poetflow.config import MonorangerConfig
+    from poetflow.types.config import MonorangerConfig
 
 
 class PathRewriter:

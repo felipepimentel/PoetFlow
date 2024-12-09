@@ -8,8 +8,8 @@ from poetry.console.commands.build import BuildCommand  # type: ignore
 from poetry.core.packages.directory_dependency import DirectoryDependency  # type: ignore
 from poetry.core.pyproject.toml import PyProjectTOML  # type: ignore
 
-from poetflow.config import MonorangerConfig
 from poetflow.plugins.path import PathRewriter
+from poetflow.types.config import MonorangerConfig
 from tests.types import Command, DependencyInfo, EventGenerator
 
 
@@ -22,9 +22,13 @@ def test_executes_path_rewriting_for_build_command(
     config = MonorangerConfig(enabled=True, monorepo_root=Path("../"), version_rewrite_rule="==")
     path_rewriter = PathRewriter(config)
 
-    original_dependencies = copy.deepcopy(mock_command.poetry.package.dependency_group.return_value.dependencies)
+    original_dependencies = copy.deepcopy(
+        mock_command.poetry.package.dependency_group.return_value.dependencies
+    )
 
-    with patch("poetflow.plugins.path.PathRewriter._get_dependency_pyproject", autospec=True) as mock_get_dep:
+    with patch(
+        "poetflow.plugins.path.PathRewriter._get_dependency_pyproject", autospec=True
+    ) as mock_get_dep:
         mock_get_dep.return_value = Mock(spec=PyProjectTOML)
         mock_get_dep.return_value.poetry_config = {"version": "0.1.0", "name": "packageB"}
 

@@ -21,7 +21,7 @@ from poetry.utils.env import EnvManager
 if TYPE_CHECKING:
     from cleo.events.console_command_event import ConsoleCommandEvent
 
-    from poetflow.config import MonorangerConfig
+    from poetflow.types.config import MonorangerConfig
 
 
 class VenvModifier:
