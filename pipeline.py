@@ -32,20 +32,16 @@ async def build_and_test(client: dagger.Client) -> bool:
 
 async def publish_package(client: dagger.Client) -> bool:
     """
-    Build and publish the package to PyPI using an API token.
-
-    Args:
-        client (dagger.Client): The Dagger client instance.
-
-    Returns:
-        bool: True if the package is published successfully, False otherwise.
+    Publish package to PyPI
     """
+    print("Starting publish process...")
+
+    # Get PyPI token from environment
     pypi_token = os.getenv("PYPI_TOKEN")
     if not pypi_token:
-        print("No PyPI token provided, skipping publish...")
-        return True
+        print("No PyPI token found")
+        return False
 
-    # Define the directory to store build artifacts
     python = (
         client.container()
         .from_("python:3.12-slim")
@@ -53,29 +49,19 @@ async def publish_package(client: dagger.Client) -> bool:
         .with_mounted_directory("/app", client.host().directory("."))
         .with_workdir("/app")
         .with_exec(["poetry", "install"])
+        .with_env_variable("PYPI_TOKEN", pypi_token)
+        # Adicionando a flag --build ao comando publish
+        .with_exec(["poetry", "publish", "--build", "--no-interaction"])
     )
 
-    # Build the package
-    build_result = await python.with_exec(["poetry", "build"]).exit_code()
-    if build_result != 0:
-        print("Failed to build the package.")
+    exit_code = await python.exit_code()
+
+    if exit_code == 0:
+        print("Package published successfully")
+        return True
+    else:
+        print("Failed to publish package")
         return False
-
-    print("Package built successfully.")
-
-    # Publish to PyPI using the token
-    publish_result = (
-        await python.with_env_variable("PYPI_TOKEN", pypi_token)
-        .with_exec(["poetry", "publish", "--no-interaction"])
-        .exit_code()
-    )
-
-    if publish_result != 0:
-        print("Failed to publish the package.")
-        return False
-
-    print("Package published successfully.")
-    return True
 
 
 async def main() -> int:
