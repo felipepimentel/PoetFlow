@@ -13,9 +13,9 @@ python = "^3.10"
 poetry = "^1.7.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.4.3"
+pytest = "^8.3.4"
 mypy = "^1.7.1"
-ruff = "^0.1.6"
+ruff = "^0.8.2"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
@@ -37,3 +37,10 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+
+[tool.poetry.scripts]
+check = "scripts.check:main"
+lint = "scripts.lint:main"
+format = "scripts.format:main"
+typecheck = "scripts.typecheck:main"
+test = "scripts.test:main"
