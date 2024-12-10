@@ -45,6 +45,9 @@ async def publish_package(client: dagger.Client) -> bool:
         print("No PyPI token provided, skipping publish...")
         return True
 
+    # Create a directory to store build artifacts
+    dist_dir = client.host().directory("./dist", create=True)
+
     python = (
         client.container()
         .from_("python:3.12-slim")
@@ -52,6 +55,7 @@ async def publish_package(client: dagger.Client) -> bool:
         .with_mounted_directory("/app", client.host().directory("."))
         .with_workdir("/app")
         .with_exec(["poetry", "install"])
+        .with_mounted_directory("/app/dist", dist_dir)  # Mount dist directory
     )
 
     # Build the package
