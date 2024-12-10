@@ -8,7 +8,8 @@ from typing import Set
 @dataclass
 class PackageInfo:
     """Information about a package"""
+
     name: str
     version: str
     path: Path
-    dependencies: Set[str] 
+    dependencies: Set[str]

@@ -1,4 +1,5 @@
 """Script to run type checking."""
+
 import subprocess
 import sys
 
@@ -13,4 +14,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main()) 
+    sys.exit(main())

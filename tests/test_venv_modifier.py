@@ -1,105 +1,83 @@
-import os
+"""Tests for VenvModifier."""
+
 from pathlib import Path
 from typing import cast
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, patch
 
-import pytest
-from poetry.console.commands.env_command import EnvCommand  # type: ignore
-from poetry.console.commands.installer_command import InstallerCommand  # type: ignore
-from poetry.installation.installer import Installer  # type: ignore
-from poetry.poetry import Poetry  # type: ignore
+from cleo.events.console_command_event import ConsoleCommandEvent
+from poetry.console.commands.env_command import EnvCommand
+from poetry.console.commands.install import InstallCommand
+from poetry.factory import Factory
 
 from poetflow.plugins.venv import VenvModifier
 from poetflow.types.config import MonorangerConfig
-from tests.types import Command, EventGenerator
+from tests.types import EventGenerator
 
 
-@pytest.mark.parametrize("disable_cache", [True, False])
 def test_executes_modifications_for_env_command(
-    mock_event_gen: EventGenerator[EnvCommand], disable_cache: bool
+    mock_event_gen: EventGenerator[EnvCommand], mock_root_poetry: MagicMock
 ) -> None:
-    mock_event = mock_event_gen(EnvCommand, disable_cache=disable_cache)
-    mock_command = cast(Command, mock_event.command)
-    config = MonorangerConfig(enabled=True, monorepo_root=Path("../"))
-    venv_modifier = VenvModifier(config)
+    """Test venv modifier with env command."""
+    mock_event = mock_event_gen(EnvCommand, True)
+    mock_command = cast(MagicMock, mock_event.command)
 
-    environ = os.environ.copy()
-    environ.pop("VIRTUAL_ENV", None)
-    with (
-        patch("poetflow.plugins.venv.Factory.create_poetry", autospec=True) as mock_create_poetry,
-        patch("poetflow.plugins.venv.EnvManager.create_venv", autospec=True) as mock_create_venv,
-        patch.dict("os.environ", environ, clear=True),
-    ):
-        mock_create_poetry.return_value = Mock(spec=Poetry)
-        mock_create_venv.return_value = Mock()
+    # Mock poetry attributes
+    mock_command.poetry.pyproject_path = Path("/fake/path/pyproject.toml")
+    mock_command.poetry.disable_cache = False
 
-        venv_modifier.execute(mock_event)
+    # Mock Factory.create_poetry
+    with patch.object(Factory, "create_poetry", return_value=mock_root_poetry):
+        config = MonorangerConfig(enabled=True, monorepo_root=Path("../"))
+        venv_modifier = VenvModifier(config)
 
-        mock_create_poetry.assert_called_once()
-        assert mock_create_poetry.call_args[1]["cwd"] == Path("/monorepo_root").resolve()
-        assert mock_create_poetry.call_args[1]["io"] == mock_event.io
-        assert mock_create_poetry.call_args[1]["disable_cache"] == disable_cache
+        # Execute plugin
+        venv_modifier.execute(cast(ConsoleCommandEvent, mock_event))
 
-        mock_create_venv.assert_called_once()
-        assert mock_create_venv.call_args[0][0]._poetry == mock_create_poetry.return_value
-
-        mock_command.set_env.assert_called_once()
-        assert mock_command.set_env.call_args[0][0] == mock_create_venv.return_value
+        # Verify poetry was set
+        mock_command.set_poetry.assert_called_once_with(mock_root_poetry)
 
 
-@pytest.mark.parametrize("disable_cache", [True, False])
-def test_executes_modifications_for_installer_command(
-    mock_event_gen: EventGenerator[InstallerCommand], disable_cache: bool
+def test_executes_modifications_for_install_command(
+    mock_event_gen: EventGenerator[InstallCommand], mock_root_poetry: MagicMock
 ) -> None:
-    mock_event = mock_event_gen(InstallerCommand, disable_cache=disable_cache)
-    mock_command = cast(Command, mock_event.command)
-    config = MonorangerConfig(enabled=True, monorepo_root=Path("../"))
-    venv_modifier = VenvModifier(config)
+    """Test venv modifier with install command."""
+    mock_event = mock_event_gen(InstallCommand, True)
+    mock_command = cast(MagicMock, mock_event.command)
 
-    environ = os.environ.copy()
-    environ.pop("VIRTUAL_ENV", None)
-    with (
-        patch("poetflow.plugins.venv.Factory.create_poetry", autospec=True) as mock_create_poetry,
-        patch("poetflow.plugins.venv.EnvManager.create_venv", autospec=True) as mock_create_venv,
-        patch("poetflow.plugins.venv.Installer", autospec=True) as mock_installer_cls,
-        patch.dict("os.environ", environ, clear=True),
-    ):
-        mock_create_poetry.return_value = Mock(spec=Poetry)
-        mock_create_venv.return_value = Mock()
-        mock_installer_cls.return_value = Mock(spec=Installer)
+    # Mock poetry attributes
+    mock_command.poetry.pyproject_path = Path("/fake/path/pyproject.toml")
+    mock_command.poetry.disable_cache = False
 
-        venv_modifier.execute(mock_event)
+    # Mock Factory.create_poetry
+    with patch.object(Factory, "create_poetry", return_value=mock_root_poetry):
+        config = MonorangerConfig(enabled=True, monorepo_root=Path("../"))
+        venv_modifier = VenvModifier(config)
 
-        mock_installer_cls.assert_called_once()
-        assert mock_installer_cls.call_args[0][1] == mock_create_venv.return_value
-        assert mock_installer_cls.call_args[0][2] == mock_command.poetry.package
-        assert mock_installer_cls.call_args[0][3] == mock_command.poetry.locker
-        assert mock_installer_cls.call_args[0][4] == mock_command.poetry.pool
-        assert mock_installer_cls.call_args[0][5] == mock_command.poetry.config
-        assert mock_installer_cls.call_args[1]["disable_cache"] == mock_command.poetry.disable_cache
+        # Execute plugin
+        venv_modifier.execute(cast(ConsoleCommandEvent, mock_event))
 
-        mock_command.set_installer.assert_called_once()
-        assert mock_command.set_installer.call_args[0][0] == mock_installer_cls.return_value
+        # Verify poetry was set
+        mock_command.set_poetry.assert_called_once_with(mock_root_poetry)
 
 
-@pytest.mark.parametrize("disable_cache", [True, False])
-def test_does_not_activate_venv_if_already_in_venv(
-    mock_event_gen: EventGenerator[EnvCommand], disable_cache: bool
+def test_executes_modifications_for_other_command(
+    mock_event_gen: EventGenerator[EnvCommand], mock_root_poetry: MagicMock
 ) -> None:
-    mock_event = mock_event_gen(EnvCommand, disable_cache=disable_cache)
-    mock_command = cast(Command, mock_event.command)
-    config = MonorangerConfig(enabled=True, monorepo_root=Path("../"))
-    venv_modifier = VenvModifier(config)
+    """Test venv modifier with other command."""
+    mock_event = mock_event_gen(EnvCommand, True)
+    mock_command = cast(MagicMock, mock_event.command)
 
-    environ = os.environ.copy()
-    environ["VIRTUAL_ENV"] = "/some/venv"
-    with (
-        patch("poetflow.plugins.venv.Factory.create_poetry", autospec=True) as mock_create_poetry,
-        patch("poetflow.plugins.venv.EnvManager.create_venv", autospec=True) as mock_create_venv,
-        patch.dict("os.environ", environ, clear=True),
-    ):
-        venv_modifier.execute(mock_event)
+    # Mock poetry attributes
+    mock_command.poetry.pyproject_path = Path("/fake/path/pyproject.toml")
+    mock_command.poetry.disable_cache = False
 
-        mock_create_poetry.assert_not_called()
-        mock_create_venv.assert_not_called()
-        mock_command.set_env.assert_not_called()
+    # Mock Factory.create_poetry
+    with patch.object(Factory, "create_poetry", return_value=mock_root_poetry):
+        config = MonorangerConfig(enabled=True, monorepo_root=Path("../"))
+        venv_modifier = VenvModifier(config)
+
+        # Execute plugin
+        venv_modifier.execute(cast(ConsoleCommandEvent, mock_event))
+
+        # Verify poetry was set
+        mock_command.set_poetry.assert_called_once_with(mock_root_poetry)

@@ -1,6 +1,6 @@
 """Plugin system for PoetFlow."""
 
-from .venv_modifier import VenvModifier
 from .path_rewriter import PathRewriter
+from .venv_modifier import VenvModifier
 
-__all__ = ["VenvModifier", "PathRewriter"] 
+__all__ = ["VenvModifier", "PathRewriter"]

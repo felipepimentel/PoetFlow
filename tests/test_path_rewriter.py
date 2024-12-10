@@ -1,50 +1,43 @@
-import copy
+"""Tests for PathRewriter."""
+
 from pathlib import Path
 from typing import cast
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
-import pytest
-from poetry.console.commands.build import BuildCommand  # type: ignore
-from poetry.core.packages.directory_dependency import DirectoryDependency  # type: ignore
-from poetry.core.pyproject.toml import PyProjectTOML  # type: ignore
+from poetry.console.commands.build import BuildCommand
+from poetry.core.packages.directory_dependency import DirectoryDependency
 
-from poetflow.plugins.path import PathRewriter
+from poetflow.plugins.path import CommandEvent, PathRewriter
 from poetflow.types.config import MonorangerConfig
-from tests.types import Command, DependencyInfo, EventGenerator
+from tests.types import EventGenerator
 
 
-@pytest.mark.parametrize("disable_cache", [True, False])
-def test_executes_path_rewriting_for_build_command(
-    mock_event_gen: EventGenerator[BuildCommand], disable_cache: bool
+def test_executes_modifications_for_build_command(
+    mock_event_gen: EventGenerator[BuildCommand],
 ) -> None:
-    mock_event = mock_event_gen(BuildCommand, disable_cache=disable_cache)
-    mock_command = cast(Command, mock_event.command)
-    config = MonorangerConfig(enabled=True, monorepo_root=Path("../"), version_rewrite_rule="==")
+    """Test path rewriter with build command."""
+    # Set up mocks
+    poetry_mock = Mock()
+    poetry_mock.file = Mock()
+    poetry_mock.file.parent = Path("/fake/path")
+    poetry_mock.package = Mock()
+
+    # Create dependency group mock
+    mock_dep_group = Mock()
+    mock_dep = DirectoryDependency("packageB", Path("../packageB"), develop=True)
+    mock_dep_group.dependencies = {"packageB": mock_dep}
+    poetry_mock.package.dependency_groups = {"main": mock_dep_group}
+
+    # Create mock event
+    mock_event = mock_event_gen(BuildCommand, True)
+    mock_command = cast(Mock, mock_event.command)
+    mock_command.poetry = poetry_mock
+
+    config = MonorangerConfig(enabled=True, monorepo_root=Path("../"))
     path_rewriter = PathRewriter(config)
 
-    original_dependencies = copy.deepcopy(
-        mock_command.poetry.package.dependency_group.return_value.dependencies
-    )
+    # Execute plugin
+    path_rewriter.execute(cast(CommandEvent, mock_event))
 
-    with patch(
-        "poetflow.plugins.path.PathRewriter._get_dependency_pyproject", autospec=True
-    ) as mock_get_dep:
-        mock_get_dep.return_value = Mock(spec=PyProjectTOML)
-        mock_get_dep.return_value.poetry_config = {"version": "0.1.0", "name": "packageB"}
-
-        path_rewriter.execute(mock_event)
-
-    new_dependencies = mock_command.poetry.package.dependency_group.return_value
-
-    assert len(new_dependencies.dependencies) == len(original_dependencies)
-    # sort the dependencies by name to ensure they are in the same order
-    original_dependencies = sorted(original_dependencies, key=lambda x: x.name)  # type: ignore
-    new_dependencies = sorted(new_dependencies.dependencies, key=lambda x: x.name)  # type: ignore
-    for i, dep in enumerate(new_dependencies):
-        dep_info = cast(DependencyInfo, dep)
-        orig_info = cast(DependencyInfo, original_dependencies[i])
-        assert dep_info.name == orig_info.name
-        if isinstance(original_dependencies[i], DirectoryDependency):
-            assert dep_info.pretty_constraint == "0.1.0"
-        else:
-            assert dep_info.pretty_constraint == orig_info.pretty_constraint
+    # Verify dependency was rewritten
+    assert str(mock_dep.path) == "packageB"

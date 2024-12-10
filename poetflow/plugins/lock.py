@@ -32,9 +32,13 @@ class LockModifier:
         Args:
             event: Command event
         """
+        if not self.plugin_conf.enabled:
+            return
+
         command = event.command
         assert isinstance(command, (LockCommand, InstallCommand, UpdateCommand)), (
-            f"{self.__class__.__name__} can only be used for `poetry lock`, `poetry install`, and `poetry update` commands"
+            f"{self.__class__.__name__} can only be used for "
+            "`poetry lock`, `poetry install`, and `poetry update` commands"
         )
 
         io = event.io
@@ -49,6 +53,8 @@ class LockModifier:
             cwd=monorepo_root, io=io, disable_cache=command.poetry.disable_cache
         )
 
+        command.set_poetry(monorepo_root_poetry)
+
         installer = Installer(
             io,
             command.env,
@@ -58,6 +64,4 @@ class LockModifier:
             monorepo_root_poetry.config,
             disable_cache=monorepo_root_poetry.disable_cache,
         )
-
-        command.set_poetry(monorepo_root_poetry)
         command.set_installer(installer)

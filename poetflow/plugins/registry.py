@@ -5,8 +5,8 @@ This module provides plugin registration and management.
 
 from typing import Dict, Type
 
-from poetflow.types.exceptions import PluginError
 from poetflow.plugins.base import Plugin
+from poetflow.types.exceptions import PluginError
 
 
 class PluginRegistry:

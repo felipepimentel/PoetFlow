@@ -2,13 +2,14 @@
 
 from typing import Any, Protocol
 
-from poetry.utils.env import EnvManager  # type: ignore
+from poetry.utils.env import EnvManager
 
 from poetflow.types.config import MonorangerConfig
 
 
 class CommandEvent(Protocol):
     """Protocol for command events."""
+
     command: Any
     io: Any
 

@@ -1,35 +1,21 @@
-"""Main application class for PoetFlow."""
+"""Application module."""
 
-from typing import Any, Mapping, Optional, TypeVar
+from cleo.events.console_command_event import ConsoleCommandEvent
+from poetry.console.application import Application as PoetryApplication
 
-from .core.config import Config
-from .core.logging import setup_logging
-from .core.monorepo import MonoRepo
-
-T = TypeVar("T")
+from poetflow.core.monorepo import MonoRepo
 
 
-class Application:
-    """Main application class that orchestrates PoetFlow's functionality."""
+class Application(PoetryApplication):
+    """Application class."""
 
-    def __init__(self, config: Optional[Mapping[str, Any]] = None):
-        """Initialize the PoetFlow application.
+    def __init__(self, monorepo: MonoRepo) -> None:
+        super().__init__()
+        self.monorepo = monorepo
 
-        Args:
-            config: Optional configuration dictionary
-        """
-        setup_logging()
-        self.config = Config.from_dict(dict(config or {}))
-        self.monorepo = MonoRepo(self.config)
-
-    def run(self, command: str, **kwargs: Any) -> Any:
-        """Run a PoetFlow command.
-
-        Args:
-            command: Command name to execute
-            **kwargs: Command arguments
-
-        Returns:
-            Command execution result
-        """
-        return self.monorepo.execute_command(command, **kwargs)
+    def handle_command_event(self, event: ConsoleCommandEvent) -> None:
+        """Handle command event."""
+        # Instead of calling execute_command directly
+        command = event.command
+        if hasattr(command, "set_manager"):
+            command.set_manager(self.monorepo)

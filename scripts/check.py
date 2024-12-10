@@ -44,12 +44,12 @@ def main() -> int:
     failed = False
     for command, description in checks:
         exit_code, stdout, stderr = run_command(command, description)
-        
+
         if stdout:
             print(stdout)
         if stderr:
             print(stderr, file=sys.stderr)
-            
+
         if exit_code != 0:
             failed = True
             print(f"❌ {description} failed!")
@@ -62,4 +62,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main()) 
+    sys.exit(main())

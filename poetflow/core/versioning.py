@@ -5,12 +5,20 @@ This module handles semantic versioning and changelog generation for packages in
 
 from datetime import datetime
 from pathlib import Path
-from typing import List, cast
+from typing import Any, Dict, List, Optional, TypeVar, Union
+
+from tomlkit.container import Container
+from tomlkit.items import Item, Table
 
 from poetflow.core.exceptions import PackageError
 from poetflow.types.monorepo import MonoRepo
-from poetflow.types.tomlkit import api, parse
+from poetflow.types.tomlkit import dumps, parse, table
 from poetflow.types.versioning import CommitInfo
+
+TOMLValue = Union[str, int, float, bool, Dict[str, Any], List[Any], Item, Container]
+TOMLMapping = Dict[str, TOMLValue]
+
+T = TypeVar("T")
 
 
 class ChangelogGenerator:
@@ -103,7 +111,7 @@ class VersionManager:
         if not pkg_info:
             raise PackageError(f"Package {package} not found")
 
-        current = cast(str, pkg_info["version"])
+        current = str(pkg_info["version"])
         breaking_changes = [c for c in commits if c.breaking]
         features = [c for c in commits if c.type == "feat"]
         fixes = [c for c in commits if c.type == "fix"]
@@ -125,24 +133,38 @@ class VersionManager:
             version: New version
 
         Raises:
-            PackageError: If package not found
+            PackageError: If package not found or if TOML structure is invalid
         """
         pkg_info = self.monorepo.get_package_info(package)
         if not pkg_info:
             raise PackageError(f"Package {package} not found")
 
-        pkg_path = Path(cast(str, pkg_info["path"]))
+        pkg_path = Path(str(pkg_info["path"]))
         pyproject_path = pkg_path / "pyproject.toml"
 
         with open(pyproject_path) as f:
             pyproject = parse(f.read())
 
+        # Create tool.poetry section if it doesn't exist
         if "tool" not in pyproject:
-            pyproject["tool"] = {}
-        if "poetry" not in pyproject["tool"]:
-            pyproject["tool"]["poetry"] = {}
+            tool_table = table()
+            pyproject.add("tool", tool_table)
 
-        pyproject["tool"]["poetry"]["version"] = version
+        tool_section: Optional[Table] = pyproject.get("tool")  # type: ignore
+        if not isinstance(tool_section, Table):
+            raise PackageError("Invalid pyproject.toml: 'tool' section is missing or invalid")
+
+        if "poetry" not in tool_section:
+            poetry_table = table()
+            tool_section.add("poetry", poetry_table)
+
+        poetry_section: Optional[Table] = tool_section.get("poetry")  # type: ignore
+        if not isinstance(poetry_section, Table):
+            raise PackageError(
+                "Invalid pyproject.toml: 'tool.poetry' section is missing or invalid"
+            )
+
+        poetry_section["version"] = version
 
         with open(pyproject_path, "w") as f:
-            f.write(api.dumps(pyproject))
+            f.write(dumps(pyproject))

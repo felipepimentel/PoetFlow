@@ -10,11 +10,11 @@ import copy
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from poetry.config.config import Config  # type: ignore
-from poetry.console.commands.add import AddCommand  # type: ignore
-from poetry.console.commands.remove import RemoveCommand  # type: ignore
+from poetry.config.config import Config
+from poetry.console.commands.add import AddCommand
+from poetry.console.commands.remove import RemoveCommand
 from poetry.factory import Factory
-from poetry.installation.installer import Installer  # type: ignore
+from poetry.installation.installer import Installer
 from poetry.poetry import Poetry
 from tomlkit.toml_document import TOMLDocument
 

@@ -1,81 +1,39 @@
-[tool.poetry]
-name = "poetflow"
-version = "0.1.0"
-description = "A Poetry plugin for managing Python monorepos"
-authors = ["Felipe Pimentel <fpimentel88@gmail.com>"]
-license = "MIT"
-readme = "README.md"
-repository = "https://github.com/felipepimentel/poetflow"
-keywords = ["packaging", "poetry", "monorepo", "lockfile", "virtualenv"]
-packages = [{ include = "poetflow" }]
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-]
-
-[tool.poetry.dependencies]
-python = "^3.12"
-poetry = "^1.7.0"
-click = "^8.1.7"
-tomlkit = "^0.13.2"
-packaging = "^24.2"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.0.0"
-mypy = "^1.8.0"
-ruff = "^0.8.2"
-pytest-cov = "^6.0.0"
-pytest-mock = "^3.12.0"
-dagger-io = "^0.14.0"
-
-[tool.poetry.plugins."poetry.application.plugin"]
-poetflow = "poetflow.plugin:Monoranger"
-
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.poetry]
+name = "poetflow"
+version = "0.1.0"
+description = "Poetry plugin for monorepo management"
+authors = ["Felipe Pimentel <felipe@pimentel.dev>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+poetry = "^1.7.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.3"
+mypy = "^1.7.1"
+ruff = "^0.1.6"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
 [tool.mypy]
-python_version = "3.12"
-strict = true
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
-ignore_missing_imports = true
-explicit_package_bases = true
-namespace_packages = true
-
-[[tool.mypy.overrides]]
-module = "tomlkit.*"
-ignore_missing_imports = true
-follow_imports = "skip"
-
-[[tool.mypy.overrides]]
-module = "poetry.*"
+check_untyped_defs = true
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = "cleo.*"
+module = ["poetry.*", "cleo.*", "poetflow.*"]
 ignore_missing_imports = true
 
 [tool.ruff]
-select = ["E", "F", "B", "I"]
 line-length = 100
-target-version = "py312"
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "--cov=poetflow --cov-report=term-missing"
-
-[tool.poetry.scripts]
-check = "scripts.check:main"
-lint = "scripts.lint:main"
-format = "scripts.format:main"
-typecheck = "scripts.typecheck:main"
-test = "scripts.test:main"
+[tool.ruff.lint]
+select = ["E", "F", "I"]

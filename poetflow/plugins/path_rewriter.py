@@ -1,15 +1,16 @@
-"""Path rewriter plugin for Poetry."""
+"""Path rewriter plugin."""
 
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
-from poetry.core.packages.dependency import Dependency  # type: ignore
-from poetry.core.packages.directory_dependency import DirectoryDependency  # type: ignore
+from poetry.console.commands.command import Command
 
-from poetflow.types.config import MonorangerConfig
+if TYPE_CHECKING:
+    from poetflow.types.config import MonorangerConfig
 
 
 class CommandEvent(Protocol):
     """Protocol for command events."""
+
     command: Any
     io: Any
 
@@ -17,16 +18,14 @@ class CommandEvent(Protocol):
 class PathRewriter:
     """Rewrites paths in Poetry dependencies."""
 
-    def __init__(self, config: MonorangerConfig) -> None:
+    def __init__(self, config: "MonorangerConfig") -> None:
         self.config = config
 
     def execute(self, event: CommandEvent) -> None:
-        """Execute the plugin.
-
-        Args:
-            event: The command event
-        """
+        """Execute the plugin."""
         if not self.config.enabled:
             return
 
-        # Implementação aqui... 
+        command = event.command
+        assert isinstance(command, Command)
+        # Rest of implementation...
