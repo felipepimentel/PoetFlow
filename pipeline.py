@@ -65,7 +65,7 @@ async def publish_package(client: dagger.Client) -> bool:
 
     # Publish to PyPI using the token
     publish_result = (
-        await python.with_env_variable("POETRY_PYPI_TOKEN_PYPI", pypi_token)
+        await python.with_env_variable("PYPI_TOKEN", pypi_token)
         .with_exec(["poetry", "publish", "--no-interaction"])
         .exit_code()
     )
