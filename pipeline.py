@@ -42,6 +42,7 @@ async def publish_package(client: dagger.Client) -> bool:
         print("No PyPI token found")
         return False
 
+    # Configure Poetry to use token authentication
     python = (
         client.container()
         .from_("python:3.12-slim")
@@ -49,7 +50,8 @@ async def publish_package(client: dagger.Client) -> bool:
         .with_mounted_directory("/app", client.host().directory("."))
         .with_workdir("/app")
         .with_exec(["poetry", "install"])
-        .with_env_variable("PYPI_TOKEN", pypi_token)
+        # Configurar o Poetry para usar autenticação com token
+        .with_exec(["poetry", "config", "pypi-token.pypi", pypi_token])
         # Adicionando a flag --build ao comando publish
         .with_exec(["poetry", "publish", "--build", "--no-interaction"])
     )
